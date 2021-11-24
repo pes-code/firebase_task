@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <link rel="stylesheet" href="css/style.css">
+  <title>TTL</title>
+  <style>
+    #output li {
+      background-color: paleturquoise;
+      font-size: 8px;
+    }
+  </style>
+  <!--大目標：優先度と着手状況が把握できるTeam共有タスクリストを作る-->
+  <!--下位目標-->
+  <!--Delete機能をつける【Clear】-->
+  <!--入力した各タスクにカウントダウンタイマーをつける-->
+  <!--各タスクにチェックボックス（着手状況、完結状況）をつける【Clear】-->
+  <!--着手チェックボックスにCheckを入れると誰が着手（完結も）しているかわかる-->
+  <!--完結チェックボックスにCheckが入ったものはDeleteボタンを押せば一括削除できる-->
+
+</head>
+
+<body>
+  <h1>TeamTaskList</h1>
+  <!-- 入力場所を作成しよう -->
+  <form>
+    <fieldset class="task_input_box">
+      <legend>Task入力処理</legend>
+      <div>
+        発信者: <input type="text" id="name">
+      </div>
+      <div>
+        Task: <input type="text" id="text">
+      </div>
+      <div>
+        期限　:<input type="datetime-local" id="limit">
+      </div>
+      <div>
+        <button type="button" id="send">入力</button>
+        <button type="reset" id="reset">取消</button>
+      </div>
+
+    </fieldset>
+
+    <!--削除フォーム-->
+    <fieldset class="task_clear_box">
+      <legend>Task完了処理</legend>
+      <div>
+        taskID: <input type="text" id="taskid">
+      </div>
+      <div>
+        <button type="button" id="delete">完了</button>
+      </div>
+    </fieldset>
+  </form>
+
+  <!-- データ出力場所 -->
+  <ul id="output"></ul>
+
+
+
+
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+  <script>
+    // 日時をいい感じの形式にする関数
+    function convertTimestampToDatetime(timestamp) {
+      const _d = timestamp ? new Date(timestamp * 1000) : new Date();
+      const Y = _d.getFullYear();
+      const m = (_d.getMonth() + 1).toString().padStart(2, '0');
+      const d = _d.getDate().toString().padStart(2, '0');
+      const H = _d.getHours().toString().padStart(2, '0');
+      const i = _d.getMinutes().toString().padStart(2, '0');
+      const s = _d.getSeconds().toString().padStart(2, '0');
+      return `${Y}/${m}/${d} ${H}:${i}:${s}`;
+    }
+  </script>
+
+  <!-- 以下にfirebaseのコードを貼り付けよう -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.5.0/firebase-app.js";
+
+    //グーグル既存のコード/////////////////////////////////////////////////////////////
+    import {///以下のものはグーグルが既に設定している関数たち
+      getFirestore,
+      collection,
+      addDoc,
+      serverTimestamp,
+      onSnapshot,//データベース上でデータの変更があった場合に｛設定した関数の処理｝を実行する。
+      query,
+      orderBy,
+      doc,
+      deleteDoc,
+    } from "https://www.gstatic.com/firebasejs/9.5.0/firebase-firestore.js";
+    ///////////////////////////////////////////////////////////////////////////////////
+    const firebaseConfig = {
+      apiKey: "AIzaSyCTIwNP_5By6Iuqs8Zkv8gxA4EyjmpiEf0",/////GitHubに提出する際は削除する。/////////////////
+      authDomain: "chat-32637.firebaseapp.com",
+      projectId: "chat-32637",
+      storageBucket: "chat-32637.appspot.com",
+      messagingSenderId: "980453475469",
+      appId: "1:980453475469:web:a08fa02a4c3ba3bdb80ec4"
+    };
+    //////////////////////////////////////////////////////
+    const app = initializeApp(firebaseConfig);
+
+    const db = getFirestore(app);//データベースとリンクさせるコード
+
+    $("#send").on("click", function () {  /////【Enter】押したら送信されるように変更////
+      /////Enterキー（=keyNo13）を押すと｛｝内の処理が実装されるという関数
+      // $("#text").on("keydown", function (e) {
+      // if (e.keyCode === 13) {
+      const data = {
+        name: $("#name").val(),///ユーザーが入力した値を取得してくるというコード
+        text: $("#text").val(),
+        limit: $("#limit").val(),///期日dataを取得してくる
+        time: serverTimestamp(),//serverTimestampを使用すれば現時刻を取得してこれる（グーグル独自）
+      };
+      //データベースに保存する処理をするコード : addDoc(coiiecton(dbデータベースにリンクするコードを記した変数名,"chatコレクション名"),data関数内に定義した処理のオブジェクト);
+      addDoc(collection(db, "chat"), data);//dbという変数のchatというコレクションにdataというオブジェクトを保存しますという意味になっている。
+      $("#name").val("");
+      $("#text").val("");//送信した後は空になるというコード
+      $("#limit").val("");
+      //}
+    });
+
+
+    ///////////////////////////
+    const q = query(collection(db, "chat"), orderBy("limit", "asc"));///期限が近い順に表示（発信時間が最新順にしたい場合は今回であれば"time"）
+
+    //onSnapshot(collection(db, "chat"), (querySnapshot) => {///onSnapshotデータの変更があった場合に処理してくれる機能、collection(db, "chat")を取ってきて(querySnapshot)という変数で定義づけている。 
+    onSnapshot(q, (querySnapshot) => {
+      // console.log(querySnapshot.docs);
+      const dataArray = [];//空配列
+      querySnapshot.docs.forEach(function (doc) {///querySnapshot.docsに対して繰り返し処理
+        const data = {
+          id: doc.id,
+          data: doc.data(),
+        };
+        dataArray.push(data);
+      });
+
+      console.log(dataArray);
+
+
+      ////////////////////////データサーバーに保管しているデータを取得
+      const tagArray = [];////タグに入ったデータを入れる空配列
+      dataArray.forEach(function (data) {
+        tagArray.push(`
+    <li class="finish_check" id="${data.id}">
+        <p>【taskID】<br><span>${data.id}</span></p>
+     
+      <p>【発信者】<span>${data.data.name
+          }</span>（<span>${convertTimestampToDatetime(data.data.time)}</span>）</p> 
+      <p>【タスク】<br><span>${data.data.text}</span></p>
+      <p>【期限】<span>${data.data.limit}</span></p>
+
+     <div class="check_box">
+      <div>
+        <p>着手<span><input type="checkbox" id="start_check" value="着手"></span></p>
+      </div>
+      <div>
+        <p>完了<span><input class="finish_check" type="checkbox" id="clear_check" value="完了"></span></p>
+      </div>
+     </div>
+          
+    </li>
+  `);
+      });
+
+      $("#output").html(tagArray);
+    });
+    ///////////////////////////////////
+
+
+    ////削除処理//////////////////
+    //  $("#taskid").on("keydown", function (e) {
+    //  if (e.keyCode === 13) {
+    // }
+    // }
+
+
+    $("#delete").on("click", function () {
+      const clear_check = document.getElementById("clear_check")////完了チェックボックスの定数  
+
+      if (clear_check.checked) {///もし完了チェックボックスにCheckが入っていたら
+
+        deleteDoc(doc(db, "chat", $("#taskid").val()));
+
+        $("#taskid").val("");//送信した後は空になるというコード
+      }
+    });
+
+
+  </script>
+
+</body>
+
+</html>
