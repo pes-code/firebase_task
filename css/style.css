@@ -6,19 +6,41 @@ body{
 
 }
 
-form{
-    width: 400px;
-}
-.task_text{
-    font-size: 15px;
+.task_input_box{
+    margin-bottom: 10px;
 }
 
-.btn_item{
-    display: flex;
-    justify-content: center;
+form{
+    width: 330px;
+    font-size: 12px;
     
 }
 
-.btn_item div{
-    margin: 10px;
+.input_form{
+    display: flex;
+    margin-bottom: 5px;
+}
+
+.task_text{
+    margin-bottom: 5px;
+
+}
+
+button{
+    font-size: 10px;
+}
+
+.send_btn{
+    display: flex;
+    justify-content: right;
+}
+
+.input_btn{
+    margin-left: 10px;
+}
+
+.delete_btn{
+    display: flex;
+    justify-content: right;
+    margin-right: 13px;
 }
