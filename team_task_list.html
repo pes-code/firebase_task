@@ -8,7 +8,7 @@
   <link rel="stylesheet" href="css/style.css">
   <title>TTL</title>
   <style>
-    #output li {
+    #output ul {
       background-color: paleturquoise;
       font-size: 8px;
       width: 350px;
@@ -17,11 +17,11 @@
   </style>
   <!--大目標：優先度と着手状況が把握できるTeam共有タスクリストを作る-->
   <!--下位目標-->
-  <!--Delete機能をつける【Clear】-->
+  <!--【Clear】Delete機能をつける-->
   <!--入力した各タスクにカウントダウンタイマーをつける-->
-  <!--各タスクにチェックボックス（着手状況、完結状況）をつける【Clear】-->
+  <!--【Clear】各タスクにチェックボックス（着手状況、完結状況）をつける-->
   <!--着手チェックボックスにCheckを入れると誰が着手（完結も）しているかわかる-->
-  <!--完結チェックボックスにCheckが入ったものはDeleteボタンを押せば一括削除できる-->
+  <!--【Clear】完結チェックボックスにCheckが入ったものはDeleteボタンを押せば一括削除できる-->
   <!--発信者毎にソートできるようにする-->
 </head>
 
@@ -30,7 +30,7 @@
   <!-- 入力場所を作成しよう -->
   <form>
     <fieldset class="task_input_box">
-      <legend>Task入力処理</legend>
+      <legend>Task_Label管理</legend>
       <div>
         発信者: <input type="text" id="name">
       </div>
@@ -40,31 +40,28 @@
       <div>
         期限　:<input type="datetime-local" id="limit">
       </div>
-      <div>
-        <button type="button" id="send">入力</button>
-        <button type="reset" id="reset">取消</button>
-      </div>
-
     </fieldset>
 
-    <!--削除フォーム-->
-    <fieldset class="task_clear_box">
-      <legend>Task完了処理</legend>
+    <div class="btn_item">
       <div>
-        taskID: <input type="text" id="taskid">
+        <button type="button" id="send">ラベル貼付</button>
       </div>
       <div>
-        <button type="button" id="delete">完了</button>
+        <button type="reset" id="reset">入力取消</button>
       </div>
-    </fieldset>
+      <!--削除フォーム-->
+      <!-- <fieldset class="task_clear_box"> 
+          <legend>Task_Label削除</legend>
+          <taskID: <input type="text" id="taskid">-->
+      <div>
+        <button type="button" id="delete">完了ラベル削除</button>
+      </div>
+    </div>
+    <!-- </fieldset>-->
   </form>
 
   <!-- データ出力場所 -->
   <ul id="output"></ul>
-
-
-
-
 
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
   <script>
@@ -99,7 +96,7 @@
     } from "https://www.gstatic.com/firebasejs/9.5.0/firebase-firestore.js";
     ///////////////////////////////////////////////////////////////////////////////////
     const firebaseConfig = {
-      /////GitHubに提出する際は削除する。/////////////////
+      apikey: "AIzaSyCTIwNP_5By6Iuqs8Zkv8gxA4EyjmpiEf0",/////GitHubに提出する際は削除する。/////////////////
       authDomain: "chat-32637.firebaseapp.com",
       projectId: "chat-32637",
       storageBucket: "chat-32637.appspot.com",
@@ -153,7 +150,7 @@
       dataArray.forEach(function (data) {
         //↓(``)内をtagArray=[]に追加するメソッド
         tagArray.push(`   
-    <li>
+    <ul>
           <p>【タスク】<br><span class="task_text">${data.data.text}</span></p>
          
           <p>【発信者】<span>${data.data.name
@@ -170,7 +167,7 @@
       </div>
      </div>
            <p>【taskID】${data.id}</p>
-    </li>
+    </ul>
   `);
       });
       ///↑テンプレートリテラル(=テンプレート文字列)に変数を埋め込む際は${変数名}と記述する。
@@ -188,31 +185,28 @@
 
 
     $("#delete").on("click", function () {
-      //const finish_check = document.getElementById("")////完了チェックボックスの定数  
-      const a = $(".clear_check").prop("checked");  ///※$()内にclass名を入れる場合は.ドットを先頭に入れる。
-      console.log(a);
+
+      // const a = $(".clear_check").prop("checked");  ///※$()内にclass名を入れる場合は.ドットを先頭に入れる。
+      // console.log(a);
 
       if ($(".clear_check").prop("checked")) {///もし完了チェックボックスにCheckが入っていたら
 
         if (window.confirm("Tasklabelを削除しますか?")) {
 
-          ///////////////////////////////////////////////
+          $(".clear_check:checked").each(function () {
+            ///////////////////////////////////////////////
 
-          deleteDoc(doc(db, "chat", $('.clear_check').attr('id')));///firebaseドキュメントを削除するメソッド
-          $("#taskid").val("");//送信した後は空になるというコード
+            deleteDoc(doc(db, "chat", $(this).attr("id")));///firebaseドキュメントを削除するメソッド+セレクタ内のid等の要素を取得できるコード
 
-          //////////////////////////////////////////////
+            //$("#taskid").val("");//送信した後は空になるというコード
 
+            //////////////////////////////////////////////
+
+          })
           alert("Tasklabelを削除しました");
         }
       }
     });
-
-
-
-
-
-
 
   </script>
 

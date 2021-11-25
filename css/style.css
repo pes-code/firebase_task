@@ -1,5 +1,9 @@
 body{
+    display: flex;
+    justify-content: center;
+    flex-direction: column;
     width: 400px;
+
 }
 
 form{
@@ -7,4 +11,14 @@ form{
 }
 .task_text{
     font-size: 15px;
+}
+
+.btn_item{
+    display: flex;
+    justify-content: center;
+    
+}
+
+.btn_item div{
+    margin: 10px;
 }
