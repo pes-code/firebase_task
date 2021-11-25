@@ -153,7 +153,7 @@
       dataArray.forEach(function (data) {
         //↓(``)内をtagArray=[]に追加するメソッド
         tagArray.push(`   
-    <li id="${data.id}">
+    <li>
           <p>【タスク】<br><span class="task_text">${data.data.text}</span></p>
          
           <p>【発信者】<span>${data.data.name
@@ -166,7 +166,7 @@
         <label><input type="checkbox" id="start_check" value="着手">着手</label>
       </div>
       <div>
-        <label><input id="clear_check" type="checkbox" value="完了">完了</label>
+        <label><input id="${data.id}" class="clear_check" type="checkbox" value="完了">完了</label>
       </div>
      </div>
            <p>【taskID】${data.id}</p>
@@ -188,15 +188,17 @@
 
 
     $("#delete").on("click", function () {
-      const finish_check = document.getElementById("clear_check")////完了チェックボックスの定数  
+      //const finish_check = document.getElementById("")////完了チェックボックスの定数  
+      const a = $(".clear_check").prop("checked");  ///※$()内にclass名を入れる場合は.ドットを先頭に入れる。
+      console.log(a);
 
-      if (finish_check.checked) {///もし完了チェックボックスにCheckが入っていたら
+      if ($(".clear_check").prop("checked")) {///もし完了チェックボックスにCheckが入っていたら
 
         if (window.confirm("Tasklabelを削除しますか?")) {
 
           ///////////////////////////////////////////////
 
-          deleteDoc(doc(db, "chat", $("#taskid").val()));///firebaseドキュメントを削除するメソッド
+          deleteDoc(doc(db, "chat", $('.clear_check').attr('id')));///firebaseドキュメントを削除するメソッド
           $("#taskid").val("");//送信した後は空になるというコード
 
           //////////////////////////////////////////////
