@@ -11,6 +11,7 @@
     #output li {
       background-color: paleturquoise;
       font-size: 8px;
+      width: 350px;
     }
   </style>
   <!--大目標：優先度と着手状況が把握できるTeam共有タスクリストを作る-->
@@ -149,23 +150,23 @@
       const tagArray = [];////タグに入ったデータを入れる空配列
       dataArray.forEach(function (data) {
         tagArray.push(`
-    <li class="finish_check" id="${data.id}">
-        <p>【taskID】<br><span>${data.id}</span></p>
-     
-      <p>【発信者】<span>${data.data.name
+    <li id="${data.id}">
+          <p>【タスク】<br><span class="task_text">${data.data.text}</span></p>
+         
+          <p>【発信者】<span>${data.data.name
           }</span>（<span>${convertTimestampToDatetime(data.data.time)}</span>）</p> 
-      <p>【タスク】<br><span>${data.data.text}</span></p>
-      <p>【期限】<span>${data.data.limit}</span></p>
+   
+          <p>【期限】<span>${data.data.limit}</span></p>
 
      <div class="check_box">
       <div>
         <p>着手<span><input type="checkbox" id="start_check" value="着手"></span></p>
       </div>
       <div>
-        <p>完了<span><input class="finish_check" type="checkbox" id="clear_check" value="完了"></span></p>
+        <p>完了<span><input type="checkbox" id="clear_check" value="完了"></span></p>
       </div>
      </div>
-          
+           <p>【taskID】<br><span>${data.id}</span></p>
     </li>
   `);
       });
@@ -183,9 +184,9 @@
 
 
     $("#delete").on("click", function () {
-      const clear_check = document.getElementById("clear_check")////完了チェックボックスの定数  
+      const finish_check = document.getElementById("clear_check")////完了チェックボックスの定数  
 
-      if (clear_check.checked) {///もし完了チェックボックスにCheckが入っていたら
+      if (finish_check.checked) {///もし完了チェックボックスにCheckが入っていたら
 
         deleteDoc(doc(db, "chat", $("#taskid").val()));
 
