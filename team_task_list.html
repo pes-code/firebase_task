@@ -13,6 +13,7 @@
       font-size: 8px;
       width: 350px;
       margin-bottom: 10px;
+
     }
   </style>
   <!--大目標：優先度と着手状況が把握できるTeam共有タスクリストを作る-->
@@ -20,9 +21,12 @@
   <!--【Clear】Delete機能をつける-->
   <!--入力した各タスクにカウントダウンタイマーをつける-->
   <!--【Clear】各タスクにチェックボックス（着手状況、完結状況）をつける-->
-  <!--着手チェックボックスにCheckを入れると誰が着手（完結も）しているかわかる-->
+  <!--【Clear】着手チェックボックスにCheckを入れると着手者名を表示する-->
+  <!--【今後の課題点】複数の着手Checkboxの判別ができていない-->
   <!--【Clear】完結チェックボックスにCheckが入ったものはDeleteボタンを押せば一括削除できる-->
   <!--発信者毎にソートできるようにする-->
+  <!--【Clear】発信者は入力取り消しを押さない限りクリアされない-->
+
 </head>
 
 <body>
@@ -99,6 +103,7 @@
       orderBy,
       doc,
       deleteDoc,
+      updateDoc
     } from "https://www.gstatic.com/firebasejs/9.5.0/firebase-firestore.js";
     /////////////////////////////////////////////////////////////////////////////////
     const firebaseConfig = {
@@ -128,10 +133,11 @@
         text: $("#text").val(),
         limit: $("#limit").val(),///期日dataを取得してくる
         time: serverTimestamp(),//serverTimestampを使用すれば現時刻を取得してこれる（グーグル独自）
+        start_name: ""//着手者名を表示するようの空の文字列
       };
       //データベースに保存する処理をするコード : addDoc(coiiecton(dbデータベースにリンクするコードを記した変数名,"chatコレクション名"),data関数内に定義した処理のオブジェクト);
       addDoc(collection(db, "chat"), data);//dbという変数のchatというコレクションにdataというオブジェクトを保存しますという意味になっている。
-      $("#name").val("");
+      //$("#name").val("");
       $("#text").val("");//送信した後は空になるというコード
       $("#limit").val("");
       //}
@@ -162,7 +168,7 @@
         //↓(``)内をtagArray=[]に追加する
         tagArray.push(`   
     <ul>        
-          <p>【発信者】<span>${data.data.name
+          <p>【発信者】<span class="start_check_name">${data.data.name
           }</span>（<span>${convertTimestampToDatetime(data.data.time)}</span>）</p> 
   
           <p>【タスク】<br><span class="task_text">${data.data.text}</span></p>
@@ -171,7 +177,7 @@
 
      <div class="check_box">
       <div>
-        <label><input type="checkbox" id="start_check" value="着手">着手</label>
+        <label><input type="checkbox" id="${data.id}" class="s_c" value="着手">着手<span id="name_text"></span></label>
       </div>
       <div>
         <label><input id="${data.id}" class="clear_check" type="checkbox" value="完了">完了</label>
@@ -180,6 +186,7 @@
          <!--  <p>【taskID】${data.id}</p>  -->
     </ul>
   `);
+
       });
       ///↑テンプレートリテラル(=テンプレート文字列)に変数を埋め込む際は${変数名}と記述する。
 
@@ -187,16 +194,25 @@
     });
     ////////////////////////////////////
 
-    //着手者名出力//////////////////////
-    $(".start_check").prop("checked"){
-      $()
+    //start_checkにCheckが入ると着手者名を表示する////////////////
 
-    }
+    $("body").on("change", ".s_c", function () { ///jsで動的に表示されているモノに対して処理するためのコード
 
-    ////////////////////////////////////
+      if ($(this).prop("checked")) {
+        const b = doc(db, "chat", $(this).attr("id"));
+        updateDoc(b, {
+          start_name: $("#name").val()
+        })
+        // console.log("アップデート");
+        $("#name_text").text($("#name").val()); ////値まで取得するためには.val()まで記述
+      }
+      else {
+        $("#name_text").text("");
+      }
+    });
+    ////////<課題点>複数の着手チェックボックスの判別ができない//////////////
 
-
-
+    //////////////////////////////////////////////////////////////
     //削除処理//////////////////////////
     $("#delete").on("click", function () {
       // const a = $(".clear_check").prop("checked");  ///※$()内にclass名を入れる場合は.ドットを先頭に入れる。
